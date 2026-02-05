@@ -41,7 +41,7 @@
           <router-link to="/auth" custom v-slot="{ navigate }">
             <button 
               @click="navigate"
-              class="w-full sm:w-auto px-8 py-4 bg-white text-[#030712] font-bold rounded-xl hover:bg-gray-200 transition-all flex items-center justify-center gap-2"
+              class="cursor-pointer w-full sm:w-auto px-8 py-4 bg-white text-[#030712] font-bold rounded-xl hover:bg-gray-200 transition-all flex items-center justify-center gap-2"
             >
               Start Chatting Now
               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
