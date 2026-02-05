@@ -1,38 +1,8 @@
-// import { createRouter, createWebHistory } from 'vue-router';
-// import Chat from '@/components/Chat.vue';
-// import UserAuth from '@/components/UserAuth.vue';
-
-// const router = createRouter({
-//   history: createWebHistory(import.meta.env.BASE_URL),
-//   routes: [
-//     {
-//       path: '/chat',
-//       name: 'Chat',
-//       component: Chat
-//     },
-//     {
-//       path: '/auth',
-//       name: 'UserAuth',
-//       component: UserAuth
-//     }
-//   ],
-// })
-
-// router.beforeEach((to, from, next) => {
-//   if (sessionStorage.getItem('authToken') !== null || to.path === '/auth') {
-//     next()
-//   } else {
-//     next('/auth')
-//   }
-// })
-
-// export default router;
-
-
 import { createRouter, createWebHistory } from 'vue-router';
 import Chat from '@/components/Chat.vue';
 import UserAuth from '@/components/UserAuth.vue';
-import LandingPage from '@/components/LandingPage.vue'; // Import your new component
+import LandingPage from '@/components/LandingPage.vue';
+import NotFoundPage from '@/components/NotFoundPage.vue';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -51,6 +21,11 @@ const router = createRouter({
       path: '/auth',
       name: 'UserAuth',
       component: UserAuth
+    },
+    {
+      path: '/:pathMatch(.*)*',
+      name: 'NotFound',
+      component: NotFoundPage
     }
   ],
 })
