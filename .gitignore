@@ -180,6 +180,4 @@ node_modules/
 npm-debug.log
 yarn-error.log
 
-AGENTS.md
-
 # End of https://www.toptal.com/developers/gitignore/api/python,vuejs
