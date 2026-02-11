@@ -1,19 +1,10 @@
 {
-  "files": [],
+  "compilerOptions": {
+    "composite": false
+  },
   "include": [
     "src/**/*.ts",
     "src/**/*.d.ts",
     "src/**/*.vue"
-  ],
-  "references": [
-    {
-      "path": "./tsconfig.node.json"
-    },
-    {
-      "path": "./tsconfig.app.json"
-    },
-    {
-      "path": "./tsconfig.vitest.json"
-    }
   ]
 }
