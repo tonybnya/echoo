@@ -17,7 +17,7 @@
     </nav>
 
     <main class="relative overflow-hidden">
-      <div class="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[500px] bg-blue-600/10 blur-[120px] rounded-full pointer-events-none"></div>
+      <div class="absolute top-0 left-1/2 -translate-x-1/2 w-full h-125 bg-blue-600/10 blur-[120px] rounded-full pointer-events-none"></div>
 
       <section class="max-w-7xl mx-auto px-6 pt-24 pb-32 text-center relative z-10">
         <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-semibold mb-6">
@@ -28,7 +28,7 @@
           Powered by WebSockets & RabbitMQ
         </div>
 
-        <h1 class="text-5xl md:text-7xl font-extrabold tracking-tight mb-6 bg-clip-text text-transparent bg-gradient-to-b from-white to-gray-400">
+        <h1 class="text-5xl md:text-7xl font-extrabold tracking-tight mb-6 bg-clip-text text-transparent bg-linear-to-b from-white to-gray-400">
           Connect. In Real Time. <br />
           <span class="text-blue-500">Instantly.</span>
         </h1>
