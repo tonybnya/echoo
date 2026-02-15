@@ -22,4 +22,6 @@ urlpatterns = [
     # djoser URLs for authentication
     path('auth/', include('djoser.urls')),
     path('auth/', include('djoser.urls.authtoken')),
+    # chat app URLs
+    path('api/', include('chat.urls'))
 ]
