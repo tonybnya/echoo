@@ -13,7 +13,7 @@ const router = createRouter({
       component: LandingPage
     },
     {
-      path: '/chat',
+      path: '/chats',
       name: 'Chat',
       component: Chat
     },
@@ -34,12 +34,12 @@ router.beforeEach((to, from, next) => {
   const isAuthenticated = localStorage.getItem('authToken') !== null;
 
   // 1. If trying to access Chat without a token, redirect to Auth
-  if (to.path === '/chat' && !isAuthenticated) {
+  if (to.path === '/chats' && !isAuthenticated) {
     next('/auth');
   }
   // 2. If already authenticated and trying to go to Auth, skip to Chat
   else if (to.path === '/auth' && isAuthenticated) {
-    next('/chat');
+    next('/chats');
   }
   // 3. Otherwise (Landing page or authorized access), proceed as usual
   else {
