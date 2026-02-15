@@ -31,7 +31,7 @@ const router = createRouter({
 })
 
 router.beforeEach((to, from, next) => {
-  const isAuthenticated = sessionStorage.getItem('authToken') !== null;
+  const isAuthenticated = localStorage.getItem('authToken') !== null;
 
   // 1. If trying to access Chat without a token, redirect to Auth
   if (to.path === '/chat' && !isAuthenticated) {

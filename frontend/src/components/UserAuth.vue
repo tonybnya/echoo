@@ -157,8 +157,8 @@ export default {
         }
 
         const data = await response.json();
-        sessionStorage.setItem('authToken', data.auth_token);
-        sessionStorage.setItem('username', this.username);
+        localStorage.setItem('authToken', data.auth_token);
+        localStorage.setItem('username', this.username);
         this.$router.push('/chat');
       } catch (error) {
         console.error('Sign in error:', error);
