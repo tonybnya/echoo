@@ -13,7 +13,7 @@ const router = createRouter({
       component: LandingPage
     },
     {
-      path: '/chats',
+      path: '/chats/:uri?',
       name: 'Chat',
       component: Chat
     },
