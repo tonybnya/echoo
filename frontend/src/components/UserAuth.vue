@@ -84,13 +84,13 @@
         <div v-if="isSignUp" class="flex items-center">
           <input id="terms" type="checkbox" required class="h-4 w-4 rounded border-gray-300 bg-gray-50 text-red-600 focus:ring-red-500">
           <label for="terms" class="ml-2 block text-sm text-gray-600">
-            I accept the <a href="#" class="text-red-500 hover:underline">Terms and Conditions</a>
+            I accept the <a href="#" class="text-red-700 hover:underline">Terms and Conditions</a>
           </label>
         </div>
 
         <button 
           type="submit" 
-          class="cursor-pointer w-full py-3 px-4 bg-red-600 hover:bg-red-700 text-white font-bold rounded-md shadow-lg transform transition active:scale-95 duration-200"
+          class="cursor-pointer w-full py-3 px-4 bg-red-700 hover:bg-red-700 text-white font-bold rounded-md shadow-lg transform transition active:scale-95 duration-200"
         >
           {{ isSignUp ? 'Create Account' : 'Sign In' }}
         </button>

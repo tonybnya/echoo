@@ -3,7 +3,7 @@
     <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-red-500/5 blur-[120px] rounded-full pointer-events-none"></div>
 
     <div class="text-center relative z-10">
-      <h1 class="text-8xl md:text-9xl font-black text-red-600 mb-4 opacity-80 tracking-tighter">
+      <h1 class="text-8xl md:text-9xl font-black text-yellow-500 mb-4 opacity-80 tracking-tighter">
         404
       </h1>
       

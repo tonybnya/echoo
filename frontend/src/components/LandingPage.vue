@@ -21,7 +21,7 @@
 
         <h1 class="text-5xl md:text-7xl font-extrabold tracking-tight mb-6 text-black">
           Connect. In Real Time. <br />
-          <span class="text-red-600">Instantly.</span>
+          <span class="text-red-700">Instantly.</span>
         </h1>
 
         <p class="max-w-2xl mx-auto text-lg md:text-xl text-gray-600 leading-relaxed mb-10">
@@ -29,18 +29,16 @@
         </p>
 
         <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
-          <router-link to="/auth" custom v-slot="{ navigate }">
-            <button 
-              @click="navigate"
-              class="cursor-pointer w-full sm:w-auto px-8 py-4 bg-black text-white font-bold rounded-md hover:bg-gray-900 transition-all flex items-center justify-center gap-2"
-            >
-              Start Chatting Now
-              <span class="relative flex h-2 w-2">
-                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75"></span>
-                <span class="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
-              </span>
-            </button>
-          </router-link>
+          <button 
+            @click="handleStartChatting"
+            class="cursor-pointer w-full sm:w-auto px-8 py-4 bg-black text-white font-bold rounded-md hover:bg-gray-900 transition-all flex items-center justify-center gap-2"
+          >
+            Start Chatting Now
+            <span class="relative flex h-2 w-2">
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-700 opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-2 w-2 bg-red-700"></span>
+            </span>
+          </button>
 
           <a 
             href="https://github.com/tonybnya/echoo" 
@@ -87,8 +85,38 @@ export default {
   name: 'LandingPage',
   data() {
     return {
-      // Logic for dynamic year
       currentYear: new Date().getFullYear()
+    }
+  },
+  methods: {
+    handleStartChatting() {
+      const isAuthenticated = localStorage.getItem('authToken') !== null;
+      if (isAuthenticated) {
+        this.createChatSession();
+      } else {
+        this.$router.push('/auth');
+      }
+    },
+    async createChatSession() {
+      try {
+        const response = await fetch('http://localhost:8000/api/chats/', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Token ${localStorage.getItem('authToken')}`
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to create chat session');
+        }
+
+        const data = await response.json();
+        this.$router.push(`/chats/${data.uri}`);
+      } catch (error) {
+        console.error('Error creating chat session:', error);
+        alert('Could not start a new chat. Please try again.');
+      }
     }
   }
 }
