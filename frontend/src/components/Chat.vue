@@ -22,8 +22,17 @@
         <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-red-700"></div>
       </div>
       
-      <div v-else-if="!uri" class="flex-1 flex items-center justify-center text-gray-500 italic">
-        No active chat session. Start one from the home page.
+      <div v-else-if="!uri" class="flex-1 flex flex-col items-center justify-center text-center p-6">
+        <p class="text-gray-600 mb-8 max-w-md">
+          To start chatting with friends click on the button below, it'll start a new chat session
+          and then you can invite your friends over to chat!
+        </p>
+        <button 
+          @click="startChatSession" 
+          class="cursor-pointer px-8 py-3 bg-black hover:bg-gray-900 text-white font-bold rounded-md shadow-lg transition-all active:scale-95"
+        >
+          Start Chatting
+        </button>
       </div>
 
       <template v-else>
@@ -175,6 +184,31 @@ const logout = () => {
   localStorage.removeItem('authToken');
   localStorage.removeItem('username');
   router.push('/auth');
+};
+
+const startChatSession = async () => {
+  loading.value = true;
+  try {
+    const response = await fetch('http://localhost:8000/api/chats/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Token ${localStorage.getItem('authToken')}`
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to create chat session');
+    }
+
+    const data = await response.json();
+    router.push(`/chats/${data.uri}`);
+  } catch (error) {
+    console.error('Error creating chat session:', error);
+    alert('Could not start a new chat. Please try again.');
+  } finally {
+    loading.value = false;
+  }
 };
 
 onMounted(async () => {
