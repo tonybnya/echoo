@@ -90,7 +90,7 @@ export default {
   },
   methods: {
     handleStartChatting() {
-      const isAuthenticated = localStorage.getItem('authToken') !== null;
+      const isAuthenticated = localStorage.getItem('accessToken') !== null;
       if (isAuthenticated) {
         this.createChatSession();
       } else {
@@ -103,7 +103,7 @@ export default {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Token ${localStorage.getItem('authToken')}`
+            'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
           }
         });
 

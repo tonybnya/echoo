@@ -129,9 +129,9 @@ const fetchMessages = async () => {
   if (!uri.value) return;
   try {
     const headers = {};
-    const token = localStorage.getItem('authToken');
+    const token = localStorage.getItem('accessToken');
     if (token) {
-      headers['Authorization'] = `Token ${token}`;
+      headers['Authorization'] = `Bearer ${token}`;
     }
     
     const response = await fetch(`http://localhost:8000/api/chats/${uri.value}/messages/`, {
@@ -197,9 +197,9 @@ const joinSession = async () => {
     const headers = {
       'Content-Type': 'application/json'
     };
-    const token = localStorage.getItem('authToken');
+    const token = localStorage.getItem('accessToken');
     if (token) {
-      headers['Authorization'] = `Token ${token}`;
+      headers['Authorization'] = `Bearer ${token}`;
     }
 
     const response = await fetch(`http://localhost:8000/api/chats/${uri.value}/`, {
@@ -242,7 +242,8 @@ const formatTime = (isoString) => {
 };
 
 const logout = () => {
-  localStorage.removeItem('authToken');
+  localStorage.removeItem('accessToken');
+  localStorage.removeItem('refreshToken');
   localStorage.removeItem('username');
   router.push('/auth');
 };
@@ -254,7 +255,7 @@ const startChatSession = async () => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Token ${localStorage.getItem('authToken')}`
+        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
       }
     });
 

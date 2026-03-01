@@ -140,7 +140,7 @@ export default {
 
     async signIn() {
       try {
-        const response = await fetch('http://localhost:8000/auth/token/login/', {
+        const response = await fetch('http://localhost:8000/auth/jwt/create/', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -157,7 +157,8 @@ export default {
         }
 
         const data = await response.json();
-        localStorage.setItem('authToken', data.auth_token);
+        localStorage.setItem('accessToken', data.access);
+        localStorage.setItem('refreshToken', data.refresh);
         localStorage.setItem('username', this.username);
         this.$router.push('/chats');
       } catch (error) {
