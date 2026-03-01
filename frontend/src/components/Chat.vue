@@ -110,6 +110,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted, nextTick, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
+import notifSound from '@/assets/notif.ogg';
 
 const router = useRouter();
 const route = useRoute();
@@ -122,6 +123,7 @@ const messageContainer = ref(null);
 const isCopied = ref(false);
 const socket = ref(null);
 const userId = ref(null);
+const audio = new Audio(notifSound);
 
 const fetchMessages = async () => {
   if (!uri.value) return;
@@ -166,6 +168,12 @@ const connectWebSocket = () => {
       return;
     }
     messages.value.push(data.message);
+    
+    // Play sound if message is from another user
+    if (data.message.user.id !== userId.value) {
+      audio.play().catch(e => console.log('Audio play blocked by browser policy:', e));
+    }
+
     scrollToBottom();
   };
 
