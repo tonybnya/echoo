@@ -120,7 +120,8 @@ const loading = ref(true);
 const uri = ref(route.params.uri);
 const messageContainer = ref(null);
 const isCopied = ref(false);
-let pollingInterval = null;
+const socket = ref(null);
+const userId = ref(null);
 
 const fetchMessages = async () => {
   if (!uri.value) return;
@@ -132,10 +133,8 @@ const fetchMessages = async () => {
     });
     if (response.ok) {
       const data = await response.json();
-      if (data.messages.length !== messages.value.length) {
-        messages.value = data.messages;
-        await scrollToBottom();
-      }
+      messages.value = data.messages;
+      await scrollToBottom();
     }
   } catch (error) {
     console.error('Error fetching messages:', error);
@@ -144,13 +143,40 @@ const fetchMessages = async () => {
   }
 };
 
+const connectWebSocket = () => {
+  if (socket.value) {
+    socket.value.close();
+  }
+
+  const wsScheme = window.location.protocol === 'https:' ? 'wss' : 'ws';
+  const wsUrl = `${wsScheme}://localhost:8000/ws/chats/${uri.value}/`;
+  
+  socket.value = new WebSocket(wsUrl);
+
+  socket.value.onmessage = (event) => {
+    const data = JSON.parse(event.data);
+    messages.value.push(data.message);
+    scrollToBottom();
+  };
+
+  socket.value.onclose = () => {
+    console.log('WebSocket disconnected. Retrying in 3 seconds...');
+    setTimeout(connectWebSocket, 3000);
+  };
+
+  socket.value.onerror = (error) => {
+    console.error('WebSocket error:', error);
+    socket.value.close();
+  };
+};
+
 const joinSession = async () => {
   if (!uri.value) {
     loading.value = false;
     return;
   }
   try {
-    await fetch(`http://localhost:8000/api/chats/${uri.value}/`, {
+    const response = await fetch(`http://localhost:8000/api/chats/${uri.value}/`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
@@ -158,7 +184,12 @@ const joinSession = async () => {
       },
       body: JSON.stringify({ username: username.value })
     });
+    if (response.ok) {
+      const data = await response.json();
+      userId.value = data.user.id;
+    }
     await fetchMessages();
+    connectWebSocket();
   } catch (error) {
     console.error('Error joining session:', error);
     loading.value = false;
@@ -166,25 +197,14 @@ const joinSession = async () => {
 };
 
 const sendMessage = async () => {
-  if (!newMessage.value.trim() || !uri.value) return;
+  if (!newMessage.value.trim() || !uri.value || !socket.value) return;
   const text = newMessage.value;
   newMessage.value = '';
   
-  try {
-    const response = await fetch(`http://localhost:8000/api/chats/${uri.value}/messages/`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Token ${localStorage.getItem('authToken')}`
-      },
-      body: JSON.stringify({ message: text })
-    });
-    if (response.ok) {
-      await fetchMessages();
-    }
-  } catch (error) {
-    console.error('Error sending message:', error);
-  }
+  socket.value.send(JSON.stringify({
+    'message': text,
+    'user_id': userId.value
+  }));
 };
 
 const scrollToBottom = async () => {
@@ -263,11 +283,13 @@ const showCopyTooltip = () => {
 onMounted(async () => {
   username.value = localStorage.getItem('username') || 'Guest';
   await joinSession();
-  pollingInterval = setInterval(fetchMessages, 3000);
 });
 
 onUnmounted(() => {
-  if (pollingInterval) clearInterval(pollingInterval);
+  if (socket.value) {
+    socket.value.onclose = null;
+    socket.value.close();
+  }
 });
 
 watch(() => route.params.uri, (newUri) => {
