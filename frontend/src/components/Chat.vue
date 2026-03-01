@@ -3,7 +3,24 @@
     <!-- Header -->
     <header class="bg-black text-white px-6 py-4 flex justify-between items-center shadow-md">
       <div class="flex items-center gap-3">
-        <h2 class="text-lg font-bold">Share the page URL to invite new friends</h2>
+        <div v-if="uri" class="flex items-center gap-3">
+          <button 
+            @click="shareSession"
+            class="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 border border-white/20 rounded-md text-sm transition-all active:scale-95 group relative"
+            title="Copy chat link to invite friends"
+          >
+            <i class="fa-solid fa-share-nodes text-yellow-400"></i>
+            <span class="font-bold">Invite Friends</span>
+            
+            <!-- Tooltip -->
+            <transition name="fade">
+              <div v-if="isCopied" class="absolute -bottom-10 left-1/2 -translate-x-1/2 px-3 py-1 bg-yellow-400 text-black text-[11px] font-bold rounded shadow-xl whitespace-nowrap z-50">
+                Link copied!
+              </div>
+            </transition>
+          </button>
+        </div>
+        <h2 v-else class="text-lg font-bold text-gray-400 italic">No active session</h2>
       </div>
       <div class="flex items-center gap-4">
         <span class="hidden sm:inline opacity-90">Logged in as: <span class="font-bold text-yellow-400 animate-pulse decoration-2 underline-offset-4">{{ username }}</span></span>
@@ -102,6 +119,7 @@ const newMessage = ref('');
 const loading = ref(true);
 const uri = ref(route.params.uri);
 const messageContainer = ref(null);
+const isCopied = ref(false);
 let pollingInterval = null;
 
 const fetchMessages = async () => {
@@ -211,6 +229,37 @@ const startChatSession = async () => {
   }
 };
 
+const shareSession = async () => {
+  const shareData = {
+    title: 'Echoo Chat',
+    text: 'Join my chat session on Echoo!',
+    url: window.location.href,
+  };
+
+  try {
+    if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
+      await navigator.share(shareData);
+    } else {
+      await navigator.clipboard.writeText(window.location.href);
+      showCopyTooltip();
+    }
+  } catch (error) {
+    if (error.name !== 'AbortError') {
+      console.error('Error sharing:', error);
+      // Fallback to clipboard if share fails for non-abort reasons
+      await navigator.clipboard.writeText(window.location.href);
+      showCopyTooltip();
+    }
+  }
+};
+
+const showCopyTooltip = () => {
+  isCopied.value = true;
+  setTimeout(() => {
+    isCopied.value = false;
+  }, 2000);
+};
+
 onMounted(async () => {
   username.value = localStorage.getItem('username') || 'Guest';
   await joinSession();
@@ -237,4 +286,16 @@ watch(() => route.params.uri, (newUri) => {
 .clip-path-left {
   clip-path: polygon(100% 0, 100% 100%, 0 0);
 }
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+  transform: translate(-50%, 10px);
+}
 </style>
+```
