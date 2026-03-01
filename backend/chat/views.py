@@ -9,7 +9,10 @@ from rest_framework import permissions, status
 class ChatSessionView(APIView):
     """Manage Chat sessions."""
 
-    permission_classes = [permissions.IsAuthenticated]
+    def get_permissions(self):
+        if self.request.method == 'PATCH':
+            return [permissions.AllowAny()]
+        return [permissions.IsAuthenticated()]
 
     def post(self, request, *args, **kwargs):
         """Create a new chat session."""
@@ -28,10 +31,11 @@ class ChatSessionView(APIView):
         uri = kwargs['uri']
         username = request.data.get('username')
 
-        if not username:
-            return Response({'error': 'Username is required'}, status=status.HTTP_400_BAD_REQUEST)
+        if username == 'Guest' and not request.user.is_authenticated:
+            user = User.objects.get(username='Guest')
+        else:
+            user = get_object_or_404(User, username=username)
 
-        user = get_object_or_404(User, username=username)
         chat_session = get_object_or_404(ChatSession, uri=uri)
         owner = chat_session.owner
 
@@ -57,7 +61,10 @@ class ChatSessionView(APIView):
 class ChatSessionMessageView(APIView):
     """Create/Get Chat session messages."""
 
-    permission_classes = [permissions.IsAuthenticated]
+    def get_permissions(self):
+        if self.request.method == 'GET':
+            return [permissions.AllowAny()]
+        return [permissions.IsAuthenticated()]
 
     def get(self, request, *args, **kwargs):
         """Return all messages in a chat session."""

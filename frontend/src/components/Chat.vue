@@ -126,10 +126,14 @@ const userId = ref(null);
 const fetchMessages = async () => {
   if (!uri.value) return;
   try {
+    const headers = {};
+    const token = localStorage.getItem('authToken');
+    if (token) {
+      headers['Authorization'] = `Token ${token}`;
+    }
+    
     const response = await fetch(`http://localhost:8000/api/chats/${uri.value}/messages/`, {
-      headers: {
-        'Authorization': `Token ${localStorage.getItem('authToken')}`
-      }
+      headers: headers
     });
     if (response.ok) {
       const data = await response.json();
@@ -149,12 +153,18 @@ const connectWebSocket = () => {
   }
 
   const wsScheme = window.location.protocol === 'https:' ? 'wss' : 'ws';
-  const wsUrl = `${wsScheme}://localhost:8000/ws/chats/${uri.value}/`;
+  const wsUrl = `${wsScheme}://${window.location.hostname}:8000/ws/chats/${uri.value}/`;
   
+  console.log('Connecting to WebSocket:', wsUrl);
   socket.value = new WebSocket(wsUrl);
 
   socket.value.onmessage = (event) => {
     const data = JSON.parse(event.data);
+    if (data.error) {
+      console.error('WebSocket server error:', data.error);
+      alert(data.error);
+      return;
+    }
     messages.value.push(data.message);
     scrollToBottom();
   };
@@ -176,12 +186,17 @@ const joinSession = async () => {
     return;
   }
   try {
+    const headers = {
+      'Content-Type': 'application/json'
+    };
+    const token = localStorage.getItem('authToken');
+    if (token) {
+      headers['Authorization'] = `Token ${token}`;
+    }
+
     const response = await fetch(`http://localhost:8000/api/chats/${uri.value}/`, {
       method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Token ${localStorage.getItem('authToken')}`
-      },
+      headers: headers,
       body: JSON.stringify({ username: username.value })
     });
     if (response.ok) {

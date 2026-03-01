@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     'djoser',
     'corsheaders',
     'channels',
+    'notifications',
     # my apps
     'chat'
 ]
