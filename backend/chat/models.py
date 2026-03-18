@@ -1,20 +1,15 @@
 from django.db import models
-
 from uuid import uuid4
-from django.db import models
-from django.contrib.auth import get_user_model
-
-User = get_user_model()
 
 
 def deserialize_user(user):
     """Deserialize user instance to JSON."""
     return {
-        'id': user.id,
-        'username': user.username,
-        'email': user.email,
-        'first_name': user.first_name,
-        'last_name': user.last_name,
+        "id": user.id,
+        "username": user.username,
+        "email": user.email,
+        "first_name": user.first_name,
+        "last_name": user.last_name,
     }
 
 
@@ -39,7 +34,7 @@ class ChatSession(TrackableDateModel):
     the first 15 characters form a UUID
     """
 
-    owner = models.ForeignKey(User, on_delete=models.PROTECT)
+    owner = models.ForeignKey("auth.User", on_delete=models.PROTECT)
     uri = models.URLField(default=_generate_unique_uri)
 
     def __str__(self):
@@ -49,20 +44,18 @@ class ChatSession(TrackableDateModel):
 class ChatSessionMessage(TrackableDateModel):
     """Store messages for a session."""
 
-    user = models.ForeignKey(User, on_delete=models.PROTECT)
+    user = models.ForeignKey("auth.User", on_delete=models.PROTECT)
     chat_session = models.ForeignKey(
-        ChatSession,
-        related_name='messages',
-        on_delete=models.PROTECT
+        ChatSession, related_name="messages", on_delete=models.PROTECT
     )
     message = models.TextField(max_length=2000)
 
     def to_json(self):
         """Deserialize message instance to JSON."""
         return {
-            'user': deserialize_user(self.user),
-            'message': self.message,
-            'created_at': self.create_date.isoformat(),
+            "user": deserialize_user(self.user),
+            "message": self.message,
+            "created_at": self.create_date.isoformat(),
         }
 
     def __str__(self):
@@ -73,11 +66,9 @@ class ChatSessionParticipant(TrackableDateModel):
     """Store all users in a chat session."""
 
     chat_session = models.ForeignKey(
-        ChatSession,
-        related_name='participants',
-        on_delete=models.PROTECT
+        ChatSession, related_name="participants", on_delete=models.PROTECT
     )
-    user = models.ForeignKey(User, on_delete=models.PROTECT)
+    user = models.ForeignKey("auth.User", on_delete=models.PROTECT)
 
     def __str__(self):
         return f"{self.user.username} in {self.chat_session.uri}"
