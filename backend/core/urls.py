@@ -23,6 +23,7 @@ from . import views
 urlpatterns = [
     path("", views.APIInfoView.as_view()),
     path("health/", views.HealthCheckView.as_view()),
+    path("debug/redis/", views.RedisDebugView.as_view()),
     path("admin/", admin.site.urls),
     # djoser URLs for authentication
     path("auth/", include("djoser.urls")),
