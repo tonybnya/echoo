@@ -12,7 +12,6 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 from dotenv import load_dotenv
-from urllib.parse import urlparse
 
 load_dotenv()
 import dj_database_url
@@ -109,23 +108,11 @@ DATABASES = {
     )
 }
 
-# Parse Redis URL for channels_redis
-redis_url = os.environ.get("REDIS_URL", "redis://127.0.0.1:6379")
-parsed_redis = urlparse(redis_url)
-
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
-            # "hosts": [os.environ.get("REDIS_URL", "redis://127.0.0.1:6379")],
-            "hosts": [
-                {
-                    "host": parsed_redis.hostname or "127.0.0.1",
-                    "port": parsed_redis.port or 6379,
-                    "password": parsed_redis.password,
-                    "ssl": parsed_redis.scheme == "rediss",
-                }
-            ],
+            "hosts": [os.environ.get("REDIS_URL", "redis://127.0.0.1:6379")],
         },
     },
 }
