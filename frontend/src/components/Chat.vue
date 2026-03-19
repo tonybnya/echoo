@@ -215,10 +215,16 @@ const joinSession = async () => {
       headers: headers,
       body: JSON.stringify({ username: username.value })
     });
+
     if (response.ok) {
       const data = await response.json();
-      userId.value = data.user.id;
+      console.log('Join session response:', data);
+      userId.value = data.user?.id;
+      console.log('User ID set to:', userId.value);
+    } else {
+      console.error('Failed to join session:', response.status);
     }
+
     await fetchMessages();
     connectWebSocket();
   } catch (error) {
@@ -228,14 +234,26 @@ const joinSession = async () => {
 };
 
 const sendMessage = async () => {
-  if (!newMessage.value.trim() || !uri.value || !socket.value) return;
+  if (!newMessage.value.trim() || !uri.value || !socket.value) {
+    console.error('Cannot send: missing required data', { message: newMessage.value, uri: uri.value, socket: !!socket.value });
+    return;
+  }
+
+  if (!userId.value) {
+    console.error('User not joined session properly - userId is missing');
+    alert('Please rejoin the chat session');
+    return;
+  }
+
   const text = newMessage.value;
   newMessage.value = '';
-  
-  socket.value.send(JSON.stringify({
+
+  const payload = {
     'message': text,
     'user_id': userId.value
-  }));
+  };
+  console.log('Sending WebSocket message:', payload);
+  socket.value.send(JSON.stringify(payload));
 };
 
 const scrollToBottom = async () => {

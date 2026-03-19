@@ -22,10 +22,10 @@ class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         self.uri = self.scope["url_route"]["kwargs"]["uri"]
         self.room_group_name = f"chat_{self.uri}"
+        self.user = self.scope.get("user")
 
-        logger.info(f"WebSocket connecting for URI: {self.uri}")
+        logger.info(f"WebSocket connecting for URI: {self.uri}, user: {self.user}")
 
-        # Join room group
         await self.channel_layer.group_add(self.room_group_name, self.channel_name)
 
         await self.accept()
@@ -35,7 +35,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
         logger.info(
             f"WebSocket disconnected for URI: {self.uri} with code: {close_code}"
         )
-        # Leave room group
         await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
 
     async def receive(self, text_data):
@@ -45,67 +44,70 @@ class ChatConsumer(AsyncWebsocketConsumer):
             user_id = data.get("user_id")
 
             logger.info(
-                f"Received message: {message} from user_id: {user_id} for URI: {self.uri}"
+                f"Received message: '{message}' from user_id: {user_id} for URI: {self.uri}"
             )
 
             if not message:
+                await self.send(text_data=json.dumps({"error": "Empty message"}))
                 return
 
-            # Save message to database
             saved_message = await self.save_message(user_id, self.uri, message)
 
             if saved_message:
-                # Send message to room group
                 await self.channel_layer.group_send(
                     self.room_group_name,
                     {"type": "chat_message", "message": saved_message},
                 )
             else:
+                error_msg = "Failed to save message. Please rejoin the chat."
                 logger.error(f"Failed to save message from user_id: {user_id}")
-                # Optionally send an error message back to the sender
-                await self.send(
-                    text_data=json.dumps(
-                        {"error": "Message could not be saved. Are you logged in?"}
-                    )
-                )
+                await self.send(text_data=json.dumps({"error": error_msg}))
 
+        except json.JSONDecodeError:
+            logger.error("Invalid JSON received")
+            await self.send(text_data=json.dumps({"error": "Invalid message format"}))
         except Exception as e:
             logger.exception(f"Error in receive: {e}")
+            await self.send(text_data=json.dumps({"error": str(e)}))
 
     async def chat_message(self, event):
         message = event["message"]
-        # Send message to WebSocket
         await self.send(text_data=json.dumps({"message": message}))
 
     @database_sync_to_async
     def save_message(self, user_id, uri, message_text):
         try:
-            # Fallback to Guest user (ID 7) if no user_id is provided
-            if not user_id:
-                logger.info(
-                    f"No user_id provided for URI {uri}, falling back to Guest (ID 7)"
-                )
-                user_id = 7
+            User = get_user()
+            user = None
 
-            user = get_user().objects.get(id=user_id)
+            if user_id:
+                try:
+                    user = User.objects.get(id=user_id)
+                    logger.info(f"Found user by ID {user_id}: {user.username}")
+                except User.DoesNotExist:
+                    logger.warning(f"User with id {user_id} does not exist")
+            elif hasattr(self, "user") and self.user and self.user.is_authenticated:
+                user = self.user
+                logger.info(f"Using authenticated user from scope: {user.username}")
+            else:
+                try:
+                    user = User.objects.get(username="Guest")
+                    logger.info("Falling back to Guest user")
+                except User.DoesNotExist:
+                    logger.error("No Guest user exists in database")
+                    return None
+
             chat_session = ChatSession.objects.get(uri=uri)
             msg = ChatSessionMessage.objects.create(
                 user=user, chat_session=chat_session, message=message_text
             )
 
-            # Trigger notification for other participants
+            logger.info(f"Message saved: {msg.id} by {user.username}")
+
             participants = ChatSessionParticipant.objects.filter(
                 chat_session=chat_session
             ).exclude(user=user)
-            # Also include the owner if they are not the sender
-            if chat_session.owner != user:
-                # We need to be careful with duplicates if the owner is also a participant record
-                # But usually participants includes everyone. Let's check models.
-                pass
 
-            # Simplified: Notify all participants except sender
-            # In our current models, owner is separate from participants list?
-            # Let's check: ChatSession.owner and ChatSessionParticipant
             recipients = [p.user for p in participants]
             if chat_session.owner != user and chat_session.owner not in recipients:
                 recipients.append(chat_session.owner)
@@ -117,7 +119,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     action="sent a message",
                     short_description=message_text[:50],
                     url=f"/chats/{uri}",
-                    channels=("rabbitmq", "console"),
+                    channels=("console",),
                 )
 
             return msg.to_json()
